@@ -1,61 +1,52 @@
-const cors = require("cors");
-const express = require("express");
-const stripe = require("stripe")("sk_test_51HcReSCCywR5jn9OY0qABOwVBu2dqJE6soaHIdAeCp7VsMyJ0PoJBZZ7qpxvqUPI7Txe7om3rfBrlnXdgxBLIWSi00ftjDzgxz");
-const uuid = require("uuid/v4");
+import React from "react";
+import ReactDOM from "react-dom";
+import StripeCheckout from "react-stripe-checkout";
+import axios from "axios";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./styles.css";
 
-const app = express();
+toast.configure();
 
-app.use(express.json());
-app.use(cors());
+function App() {
+  const [product] = React.useState({
+    name: "Zucchipakoda",
+    price: 10,
+    description: "Deep fried Zucchini coated with mildly spiced Chickpea flour batter accompanied with a sweet-tangy tamarind sauce"
+  });
 
-app.get("/", (req, res) => {
-  res.send("Add your Stripe Secret Key to the .require('stripe') statement!");
-});
-
-app.post("/checkout", async (req, res) => {
-  console.log("Request:", req.body);
-
-  let error;
-  let status;
-  try {
-    const { product, token } = req.body;
-
-    const customer = await stripe.customers.create({
-      email: token.email,
-      source: token.id
-    });
-
-    const idempotency_key = uuid();
-    const charge = await stripe.charges.create(
-      {
-        amount: product.price * 100,
-        currency: "usd",
-        customer: customer.id,
-        receipt_email: token.email,
-        description: `Purchased the ${product.name}`,
-        shipping: {
-          name: token.card.name,
-          address: {
-            line1: token.card.address_line1,
-            // line2: token.card.address_line2,
-            city: token.card.address_city,
-            country: token.card.address_country,
-            postal_code: token.card.address_zip
-          }
-        }
-      },
-      {
-        idempotency_key
-      }
+  async function handleToken(token, addresses) {
+    const response = await axios.post(
+      "http://localhost:8080/checkout",
+      { token, product }
     );
-    console.log("Charge:", { charge });
-    status = "success";
-  } catch (error) {
-    console.error("Error:", error);
-    status = "failure";
+    const { status } = response.data;
+    console.log("Response:", response.data);
+    toast("Success! Check email for details", { type: "success" });
+    
   }
 
-  res.json({ error, status });
-});
+  return (
+    <div className="container">
+      <div className="product">
+        <h1>{product.name}</h1>
+        <h3>Buy·${product.price}</h3>
+        <h4>{product.description}</h4>
+      </div>
+      <StripeCheckout
+        stripeKey="pk_test_51HcReSCCywR5jn9OLaCupCzBftJhGrOFZ45MPralP6ff3JMwJUc0vK8feXOzXJjTRDUX1arZOhrxM7aNz1SMxWGH00RXnqiEPD"
+        token={handleToken}
+        amount={product.price * 100}
+        name="Tesla Roadster"
+        billingAddress
+        shippingAddress
+        amount={product.price * 100}
+        name = {product.name}
+        description = {product.description}
+      />
+    </div>
+  );
+}
 
-app.listen(8080);
+const rootElement = document.getElementById("root");
+ReactDOM.render(<App />, rootElement);
