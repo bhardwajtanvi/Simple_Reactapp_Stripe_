@@ -11,7 +11,7 @@ Second Link is showing data passed to backend
 [![CLICK]](https://youtu.be/wJIi8rtwh38)
 
 Third Link is for Stripe Payment Gateway
-[![](/images/img2.png)](https://youtu.be/1LJRK6UDfts)
+[![](/images/img3.png)](https://youtu.be/1LJRK6UDfts)
 [![CLICK]](https://youtu.be/1LJRK6UDfts)
 
 
